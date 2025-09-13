@@ -9,6 +9,7 @@ __pycache__
 *.pth
 
 # Data & Results
+data/
 results/
 *.pkl
 *.npy
