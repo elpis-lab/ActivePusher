@@ -1,0 +1,25 @@
+<mujoco model="banana">
+  <compiler angle="radian" />
+
+  <asset>
+    <mesh name="banana_visual_mesh" file="banana/textured.obj" />
+    <mesh name="banana_collision_mesh_0" file="banana/textured_coacd_0.stl" />
+    <mesh name="banana_collision_mesh_1" file="banana/textured_coacd_1.stl" />
+    <mesh name="banana_collision_mesh_2" file="banana/textured_coacd_2.stl" />
+    <mesh name="banana_collision_mesh_3" file="banana/textured_coacd_3.stl" />
+    <texture name="banana_texture" type="2d" file="banana/texture_map.png" />
+    <material name="banana_material" texture="banana_texture" />
+  </asset>
+
+  <worldbody>
+    <body name="banana" pos="0 0 0" euler="0 0 0">
+      <freejoint name="banana_joint" />
+      <geom name="banana_visual_geom" type="mesh" mesh="banana_visual_mesh" material="banana_material" pos="0.0 0.0 0.0" euler="0 0 0" contype="0" conaffinity="0" group="0" />
+      <geom name="banana_collision_geom_0" type="mesh" mesh="banana_collision_mesh_0" pos="0.0 0.0 0.0" euler="0 0 0" contype="1" conaffinity="1" group="3" />
+      <geom name="banana_collision_geom_1" type="mesh" mesh="banana_collision_mesh_1" pos="0.0 0.0 0.0" euler="0 0 0" contype="1" conaffinity="1" group="3" />
+      <geom name="banana_collision_geom_2" type="mesh" mesh="banana_collision_mesh_2" pos="0.0 0.0 0.0" euler="0 0 0" contype="1" conaffinity="1" group="3" />
+      <geom name="banana_collision_geom_3" type="mesh" mesh="banana_collision_mesh_3" pos="0.0 0.0 0.0" euler="0 0 0" contype="1" conaffinity="1" group="3" />
+      <inertial pos="0 0 0" euler="0 0 0" mass="0.066" diaginertia="0.001 0.001 0.001" />
+    </body>
+  </worldbody>
+</mujoco>

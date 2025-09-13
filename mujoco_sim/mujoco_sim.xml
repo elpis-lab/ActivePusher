@@ -1,0 +1,28 @@
+<mujoco model="mjc_sim">
+  <compiler angle="radian" autolimits="true" />
+
+  <visual>
+    <global offwidth="1920" offheight="1080" />
+  </visual>
+
+  <option cone="elliptic" timestep="0.005" integrator="implicitfast" />
+
+  <default>
+    <geom condim="6" friction="0.2 0.001 0.0001" />
+  </default>
+
+  <include file="assets/lab_scene.xml" />
+  <include file="assets/ur10_rod.xml" />
+  <include file="assets/object_name.xml" />
+  <!-- <include file="assets/cracker_box_flipped.xml" /> -->
+  <!-- <include file="assets/letter_t.xml" /> -->
+  <!-- <include file="assets/master_chef_can_flipped.xml" /> -->
+  <!-- <include file="assets/vehicle.xml" /> -->
+  <!-- <include file="assets/mustard_bottle_flipped.xml" /> -->
+  <!-- <include file="assets/banana.xml" /> -->
+
+  <!-- For debugging -->
+  <worldbody>
+    <site name="marker" pos="0.0 0.0 -1.0" type="sphere" size="0.02" rgba="1 0 0 0.7"/>
+  </worldbody>
+</mujoco>

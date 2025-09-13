@@ -1,0 +1,3 @@
+ur_rtde
+asyncio
+python-socketio[client]
