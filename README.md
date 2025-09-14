@@ -59,7 +59,9 @@ python scripts/collect_data.py <obj_name>
 
 You will see the robot start to push the object randomly. The push parameter and the effect of the push will be recorded and saved in **data** folder.
 
-![data_collection.gif](./doc/data_collection.gif)
+<p align="center">
+    <img src="./doc/data_collection.gif" width="600"/>
+</p>
 
 ### Run Active Training
 
@@ -75,7 +77,9 @@ After training, all the models will be saved in **results/models** folder and al
 
 You can plot the results by running `scripts/plot_active.py`. Here is the active learning result demonstrating how residual physics model and active learning method BAIT, can help to learn dynamics model efficiently. It only requiring approximately 40~50% of the data to reach the final performance of the baseline method.
 
-![active_learning.jpg](./doc/active_learning.jpg)
+<p align="center">
+    <img src="./doc/active_learning.jpg"/>
+</p>
 
 ## Active Planning
 
@@ -116,3 +120,7 @@ python scripts/run_plans.py
 After planning, all the results will be saved in **results/planning** folder.
 
 You can plot the results by running `scripts/plot_planning.py`. Here is the active planning result demonstrating how active sampling strategy biases the control sampler to sample more reliable actions, leading to a higher planning success rate.
+
+<p align="center">
+    <img src="./doc/active_planning.jpg"/>
+</p>
