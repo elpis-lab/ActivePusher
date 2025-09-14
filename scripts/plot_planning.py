@@ -8,12 +8,7 @@ import seaborn as sns
 import pickle
 
 
-def main(
-    obj_name,
-    n_datas,
-    types,
-    env,
-):
+def main(obj_name, n_datas, types):
     results = np.zeros((len(n_datas), len(types), 5))
     for i, n_data in enumerate(n_datas):
         for j, ty in enumerate(types):
@@ -320,23 +315,20 @@ def main(
 
 
 if __name__ == "__main__":
-    # obj_names = [
-    #     "mustard_bottle_flipped",
-    #     "real_mustard_bottle_flipped",
-    # ]
-    # env = "region"
     obj_names = [
+        "mustard_bottle_flipped",
+        "real_mustard_bottle_flipped",
         "cracker_box_flipped",
         "real_cracker_box_flipped",
     ]
-    env = "edge"
 
     n_datas = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     types = [
         "mlp_random_regular",
+        "mlp_random_active",
         "residual_bait_regular",
         "residual_bait_active",
     ]
 
     for obj_name in obj_names:
-        main(obj_name, n_datas, types, env)
+        main(obj_name, n_datas, types)

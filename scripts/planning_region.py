@@ -134,7 +134,7 @@ if __name__ == "__main__":
     # Planning environment
     obstacles = []
     # Planning time
-    planning_time = 5  # 3
+    planning_time = 3
 
     all_states, all_controls = run_planning(
         args.obj_name,

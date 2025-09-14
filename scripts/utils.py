@@ -85,7 +85,7 @@ class DataLoader:
         self.x = x
         self.y = y
 
-    def load_data(self, verbose=1):
+    def load_data(self, verbose=0):
         """Load all data as a dictionary"""
         # Split data
         x_pool = self.x[: self.pool_size]

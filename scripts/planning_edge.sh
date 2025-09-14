@@ -11,7 +11,7 @@ objs=(
 )
 model_learning_types=(
     mlp_random
-    # residual_bait
+    residual_bait
 )
 n_datas=(
     10
@@ -26,7 +26,7 @@ n_datas=(
     100
 )
 active_sampling=(
-    # 0
+    0
     1
 )
 n_reps=5

@@ -147,32 +147,32 @@ def main(
 
 
 if __name__ == "__main__":
-    # obj_names = [
-    #     "mustard_bottle_flipped",
-    #     "real_mustard_bottle_flipped",
-    # ]
-    # envs = ["region"]
     obj_names = [
+        "mustard_bottle_flipped",
+        "real_mustard_bottle_flipped",
         "cracker_box_flipped",
         "real_cracker_box_flipped",
     ]
-    envs = ["edge"]
 
     models = ["residual_bait", "mlp_random"]
     n_datas = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     # n_datas = [100]
     is_active_sampling = [0, 1]
     for obj_name in obj_names:
+        if "mustard" in obj_name:
+            env = "region"
+        elif "cracker" in obj_name:
+            env = "edge"
         for model in models:
             model_type, learning_type = model.split("_")
+
             for n_data in n_datas:
                 for active_sampling in is_active_sampling:
-                    for env in envs:
-                        main(
-                            obj_name,
-                            model_type,
-                            learning_type,
-                            n_data,
-                            active_sampling,
-                            env,
-                        )
+                    main(
+                        obj_name,
+                        model_type,
+                        learning_type,
+                        n_data,
+                        active_sampling,
+                        env,
+                    )

@@ -146,7 +146,7 @@ if __name__ == "__main__":
         [0.45, -0.8, 0.05],
     ]
     # Planning time
-    planning_time = 8  # 5
+    planning_time = 3
 
     all_states, all_controls = run_planning(
         args.obj_name,

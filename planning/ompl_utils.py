@@ -40,8 +40,6 @@ class SE2ControlPlanner:
         self.control_space = self.init_control_space(control_bounds)
         self.si = ControlSpaceInformation(self.space, self.control_space)
         self.ss = oc.SimpleSetup(self.si)
-        # self.ss = oc.SimpleSetup(self.control_space)
-        # self.si = self.ss.getSpaceInformation()
         self.pdef = self.ss.getProblemDefinition()
         self.set_up_planner(model, x_train, active_sampling, controls)
 
@@ -148,11 +146,12 @@ class SE2ControlPlanner:
 
         # Set goal
         goal_state = self.get_state([goal[0], goal[1], goal[2]])
-        goal_bounds = ob.RealVectorBounds(3)
-        for i in range(3):
-            goal_bounds.setLow(i, goal_ranges[i][0])
-            goal_bounds.setHigh(i, goal_ranges[i][1])
-        self.ss.setGoal(ob.SE2GoalState(self.si, goal_state, goal_bounds))
+        # goal_bounds = ob.RealVectorBounds(3)
+        # for i in range(3):
+        #     goal_bounds.setLow(i, goal_ranges[i][0])
+        #     goal_bounds.setHigh(i, goal_ranges[i][1])
+        # self.ss.setGoal(ob.SE2GoalState(self.si, goal_state, goal_bounds))
+        self.ss.setGoal(SE2GoalState(self.si, goal_state, goal_ranges))
 
         # Solve
         self.ss.setup()
@@ -223,12 +222,13 @@ class SE2ControlPlanner:
             return False
 
         # In collision
-        pose = np.array([state.getX(), state.getY(), state.getYaw()])
-        in_collision = in_collision_with_circles(
-            pose, self.obj_shape, self.obstacle_poses, self.obstacle_rads
-        )
-        if in_collision:
-            return False
+        if len(self.obstacle_poses) > 0:
+            pose = np.array([state.getX(), state.getY(), state.getYaw()])
+            in_collision = in_collision_with_circles(
+                pose, self.obj_shape, self.obstacle_poses, self.obstacle_rads
+            )
+            if in_collision:
+                return False
 
         return True
 
@@ -313,7 +313,7 @@ class ClearanceObjective(ob.StateCostIntegralObjective):
         return ob.Cost(1 / self.clearance_fn(state))
 
 
-class SE2Propagator(oc.SE2Propagator):
+class SE2Propagator:  # (oc.SE2Propagator):
     """
     See ControlBatchSampler for more details.
     Propagator is now only responsible to propagate given the
@@ -324,21 +324,47 @@ class SE2Propagator(oc.SE2Propagator):
 
     def __init__(self, si, model):
         """Initialize the SE2 propagator"""
-        super().__init__(si)
+        # super().__init__(si)
         self.space = si.getStateSpace()
         self.model = model
         dim = si.getControlSpace().getDimension()
         s_dim = self.space.getDimension()
         self.c_dim = dim - s_dim
 
+    # TODO: Implement this in C++
     def propagate(self, state, control, duration, result):
         """Extract the delta state from the control values and propagate"""
         # Create delta state
-        delta_state = ob.State(self.space)
-        delta_state().setX(float(control[self.c_dim + 0]))
-        delta_state().setY(float(control[self.c_dim + 1]))
-        delta_state().setYaw(float(control[self.c_dim + 2]))
-        self.propagateSE2(state, delta_state, result)
+        # delta_state = ob.State(self.space)
+        # delta_state().setX(float(control[self.c_dim + 0]))
+        # delta_state().setY(float(control[self.c_dim + 1]))
+        # delta_state().setYaw(float(control[self.c_dim + 2]))
+        # self.propagateSE2(state, delta_state, result)
+        init = self._to_matrix([state.getX(), state.getY(), state.getYaw()])
+        cs = [
+            control[self.c_dim],
+            control[self.c_dim + 1],
+            control[self.c_dim + 2],
+        ]
+        d_state = self._to_matrix(cs)
+        final = self._to_vector(init @ d_state)
+        result.setX(final[0])
+        result.setY(final[1])
+        result.setYaw(final[2])
+
+    def _to_matrix(self, vector):
+        c = np.cos(vector[2])
+        s = np.sin(vector[2])
+        return np.array([[c, -s, vector[0]], [s, c, vector[1]], [0, 0, 1]])
+
+    def _to_vector(self, matrix):
+        return np.array(
+            [
+                matrix[0, 2],
+                matrix[1, 2],
+                np.arctan2(matrix[1, 0], matrix[0, 0]),
+            ]
+        )
 
 
 class ControlBatchSampler(oc.ControlSampler):
@@ -536,6 +562,41 @@ class ActiveBatchControlSampler(ControlBatchSampler):
         super().sample(control)
         if self.cache_idx >= self.n_pool:
             self.sample_cache()
+
+
+# TODO: Implement this in C++
+class SE2GoalState(ob.GoalState):
+    def __init__(self, si, goal, ranges):
+        super().__init__(si)
+        self.ranges = ranges
+        self.setState(goal)
+        self.setThreshold(0.01)
+
+    def distanceGoal(self, state: ob.State) -> float:
+        x = state.getX()
+        y = state.getY()
+        yaw = state.getYaw()
+        goal_x = self.getState().getX()
+        goal_y = self.getState().getY()
+        goal_yaw = self.getState().getYaw()
+
+        # distance to goal in SE2 space
+        x_dist = x - goal_x
+        y_dist = y - goal_y
+        yaw_dist = yaw - goal_yaw
+        yaw_dist = (yaw_dist + np.pi) % (2 * np.pi) - np.pi
+
+        # if in range, return a value smaller than 0.01
+        # to indicate success, since threshold is by set to 0.01
+        if (
+            self.ranges[0][0] <= x_dist <= self.ranges[0][1]
+            and self.ranges[1][0] <= y_dist <= self.ranges[1][1]
+            and self.ranges[2][0] <= yaw_dist <= self.ranges[2][1]
+        ):
+            return 0
+        else:
+            dist = (x_dist**2 + y_dist**2) ** 0.5 + 0.5 * abs(yaw_dist)
+            return dist
 
 
 def set_ompl_seed(seed):
