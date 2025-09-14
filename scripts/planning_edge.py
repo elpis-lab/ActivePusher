@@ -16,7 +16,9 @@ from planning.planning_utils import get_random_se2_states
 
 def generate_initial_states(n_states):
     """Generate initial states"""
-    states = get_random_se2_states(n_states, pos_range=(0.1, 0.2, -0.6, -0.8))
+    states = get_random_se2_states(
+        n_states, pos_range=((0.1, 0.2), (-0.8, -0.6))
+    )
     np.save("data/planning_edge_initial_states.npy", states)
 
 

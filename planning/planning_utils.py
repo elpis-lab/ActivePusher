@@ -4,17 +4,34 @@ import matplotlib.pyplot as plt
 
 # State Utils
 def get_random_se2_states(
-    n_data, pos_range=(-0.2, 0.2, -0.9, -0.5), euler_range=(-np.pi, np.pi)
+    n_data, pos_range=((-0.2, 0.2), (-0.9, -0.5)), euler_range=(-np.pi, np.pi)
 ):
     """Generate random initial states"""
-    pos_x = np.random.uniform(pos_range[0], pos_range[1], (n_data, 1))
-    pos_y = np.random.uniform(pos_range[2], pos_range[3], (n_data, 1))
+    pos_x = np.random.uniform(pos_range[0][0], pos_range[0][1], (n_data, 1))
+    pos_y = np.random.uniform(pos_range[1][0], pos_range[1][1], (n_data, 1))
     euler = np.random.uniform(euler_range[0], euler_range[1], (n_data, 1))
     states = np.concatenate([pos_x, pos_y, euler], axis=-1)
     return states
 
 
 # Validity Check
+def out_of_bounds(obj_pos, pos_range=((-0.76, 0.76), (-1.0, -0.4))):
+    """Check if the object is out of bounds"""
+    obj_pos = np.array(obj_pos)
+    single = obj_pos.ndim == 1
+    if single:
+        obj_pos = obj_pos[None, :]
+
+    # Check bounds
+    lower = np.array([r[0] for r in pos_range])
+    upper = np.array([r[1] for r in pos_range])
+    outs = np.any((obj_pos < lower) | (obj_pos > upper), axis=1)
+
+    if single:
+        return outs[0]
+    return outs
+
+
 def in_collision_with_circles(
     obj_pose, obj_shape, circle_poses, circle_radius
 ):
@@ -22,14 +39,19 @@ def in_collision_with_circles(
     if len(circle_poses) == 0 or len(circle_radius) == 0:
         return False
 
-    x, y, yaw = obj_pose
+    obj_pose = np.array(obj_pose)
+    single = obj_pose.ndim == 1
+    if single:
+        obj_pose = obj_pose[None, :]
+
+    x, y, yaw = obj_pose[:, 0], obj_pose[:, 1], obj_pose[:, 2]
     w, h = obj_shape[:2]
     hx, hy = 0.5 * w, 0.5 * h
 
     # Translate circle centers into object frame
-    dx = circle_poses[:, 0] - x
-    dy = circle_poses[:, 1] - y
-    c, s = np.cos(yaw), np.sin(yaw)
+    dx = circle_poses[:, 0][None, :] - x[:, None]
+    dy = circle_poses[:, 1][None, :] - y[:, None]
+    c, s = np.cos(yaw)[:, None], np.sin(yaw)[:, None]
     lx = c * dx + s * dy
     ly = -s * dx + c * dy
 
@@ -44,7 +66,13 @@ def in_collision_with_circles(
     dist2 = ddx * ddx + ddy * ddy
 
     # Collision check
-    return np.any(dist2 <= circle_radius**2)
+    circle_radius.reshape((-1, circle_radius.shape[0]))
+    hits = np.any(dist2 <= circle_radius**2, axis=1)
+
+    # Return result
+    if single:
+        return hits[0]
+    return hits
 
 
 def get_box_corners(poses, obj_shape):
@@ -105,7 +133,13 @@ def is_state_success(poses, goal, goal_region):
 
 
 # Plotting
-def plot_states(states, obstacles=None, planned_states=None, obj_shape=None):
+def plot_states(
+    states,
+    circle_poses=(),
+    circle_rads=(),
+    planned_states=None,
+    obj_shape=None,
+):
     """Plot the states of the object."""
     states = np.array(states)
     if planned_states is not None:
@@ -117,16 +151,15 @@ def plot_states(states, obstacles=None, planned_states=None, obj_shape=None):
     # Plot a robot
     draw_rectangle(0, 0, 0.2, 0.2, 0, "gray", alpha=1.0, label="Robot")
     # Plot the obstacles
-    if obstacles is not None:
-        for obstacle in obstacles:
-            draw_circle(
-                obstacle[0],
-                obstacle[1],
-                obstacle[2],
-                "r",
-                alpha=0.3,
-                label="Obstacle",
-            )
+    for circle_pose, circle_rad in zip(circle_poses, circle_rads):
+        draw_circle(
+            circle_pose[0],
+            circle_pose[1],
+            circle_rad,
+            "r",
+            alpha=0.3,
+            label="Obstacle",
+        )
 
     # Plot the states path
     if planned_states is not None:

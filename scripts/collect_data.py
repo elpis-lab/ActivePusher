@@ -12,7 +12,7 @@ from simulation.mink_ik import UR10IK
 from geometry.random_push import (
     get_random_push,
     generate_push_params,
-    generate_path_form_params,
+    generate_path_from_params,
 )
 from geometry.object_model import get_obj_shape
 from utils import parse_args, set_seed
@@ -81,7 +81,7 @@ def collect_data(obj_name, n_data, random_init=True, push_params=None):
         )
     else:
         assert len(push_params) == n_data
-        t_paths, ws_paths = generate_path_form_params(
+        t_paths, ws_paths = generate_path_from_params(
             init_states, obj_shape, push_params
         )
 
@@ -116,11 +116,14 @@ def collect_repetitive_data(obj_name, n_data, n_reps, random_init=True):
 
 ########## Helper functions ##########
 def get_random_se2_states(
-    n_envs, z=0, pos_range=(-0.2, 0.2, -0.5, -0.9), euler_range=(-np.pi, np.pi)
+    n_envs,
+    z=0,
+    pos_range=((-0.2, 0.2), (-0.9, -0.5)),
+    euler_range=(-np.pi, np.pi),
 ):
     """Get random SE2 states for n_envs"""
-    pos_x = np.random.uniform(pos_range[0], pos_range[1], (n_envs, 1))
-    pos_y = np.random.uniform(pos_range[2], pos_range[3], (n_envs, 1))
+    pos_x = np.random.uniform(pos_range[0][0], pos_range[0][1], (n_envs, 1))
+    pos_y = np.random.uniform(pos_range[1][0], pos_range[1][1], (n_envs, 1))
     pos_z = z * np.ones((n_envs, 1))
     pos = np.concatenate([pos_x, pos_y, pos_z], axis=-1)
 
@@ -133,10 +136,9 @@ def get_random_se2_states(
 def project_se3_pose(poses, axis=[0, 1, 0]):
     """Project SE3 pose to SE2"""
     poses = np.array(poses)
-    single = False
-    if poses.ndim == 1:
+    single = poses.ndim == 1
+    if single:
         poses = poses[None, :]
-        single = True
 
     # Position
     xy = poses[:, :2]

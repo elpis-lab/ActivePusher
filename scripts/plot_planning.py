@@ -9,7 +9,7 @@ import pickle
 
 
 def main(obj_name, n_datas, types):
-    results = np.zeros((len(n_datas), len(types), 5))
+    results = np.zeros((len(n_datas), len(types), 6))
     for i, n_data in enumerate(n_datas):
         for j, ty in enumerate(types):
             model_type, learning_type, sampling = ty.split("_")
@@ -23,8 +23,8 @@ def main(obj_name, n_datas, types):
     fig, axs = plt.subplots(2, 1, figsize=(10, 10))
     for i, ty in enumerate(types):
         model_type, learning_type, sampling = ty.split("_")
-        success = results[:, i, 0] / 500
-        error = results[:, i, 1]
+        success = results[:, i, 0]
+        error = results[:, i, 2]
         axs[0].plot(np.arange(10), success, label=f"{ty}")
         axs[1].plot(np.arange(10), error, label=f"{ty}")
     axs[0].legend()

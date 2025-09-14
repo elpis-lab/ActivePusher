@@ -114,7 +114,7 @@ python scripts/run_plans_pool.py
 To evaluate the plan with simulation
 
 ```bash
-python scripts/run_plans.py
+python scripts/run_plans_sim.py
 ```
 
 After planning, all the results will be saved in **results/planning** folder.

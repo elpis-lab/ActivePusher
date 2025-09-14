@@ -121,8 +121,9 @@ def get_push_physics(model_type, obj_size):
 
 def evaluate_results(pred, true, verbose=False):
     """Evaluate results"""
-    # SE2 RMSE
-    # se2_loss = se2_split_loss(torch.tensor(pred), torch.tensor(true)).item()
+    pred = np.asarray(pred)
+    true = np.asarray(true)
+    # SE2 error
     pos_error = np.mean(np.linalg.norm(true[:, :2] - pred[:, :2], axis=1))
     rot_error = np.mean(np.abs(angle_diff(true[:, 2], pred[:, 2])))
     se2_loss = pos_error + 0.2 * rot_error

@@ -9,7 +9,7 @@ from scipy.spatial.transform import Rotation as R
 from geometry.pose import flat_to_matrix, matrix_to_flat
 from geometry.random_push import (
     generate_push_params,
-    generate_path_form_params,
+    generate_path_from_params,
 )
 from geometry.object_model import get_obj_shape
 from models.physics import push_physics
@@ -324,7 +324,7 @@ def main(obj_name, n_data, n_reps=0, detection_wait=0.0, push_offset=0.01):
             push_param = candidate_push_params[count % n_data]
 
         # Collect one interaction data
-        t_paths, ws_paths = generate_path_form_params(
+        t_paths, ws_paths = generate_path_from_params(
             matrix_to_flat(obj_pose)[None, :],
             obj_shape,
             push_param[None, :],

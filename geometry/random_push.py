@@ -22,7 +22,7 @@ def get_random_push(
     push_params = generate_push_params(
         n_params, rotation_range, side_range, distance_range
     )
-    times, ws_paths = generate_path_form_params(
+    times, ws_paths = generate_path_from_params(
         obj_states,
         obj_shape,
         push_params,
@@ -60,7 +60,7 @@ def generate_push_params(
     return push_params
 
 
-def generate_path_form_params(
+def generate_path_from_params(
     obj_states: np.ndarray,
     obj_shape: tuple[float, float, float],
     push_params: np.ndarray,

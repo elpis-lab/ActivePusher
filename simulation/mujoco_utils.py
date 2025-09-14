@@ -49,10 +49,9 @@ def render_mp4(
 def flat_to_matrix(flat):
     """Convert a flat 7D array to a 4x4 homogeneous matrix"""
     flat = np.array(flat)
-    single = False
-    if flat.ndim == 1:
+    single = flat.ndim == 1
+    if single:
         flat = flat[None, :]
-        single = True
 
     # Convert to matrices
     positions = flat[:, :3]
@@ -70,10 +69,9 @@ def flat_to_matrix(flat):
 def matrix_to_flat(matrix):
     """Convert a 4x4 homogeneous matrix to a flat 7D array"""
     matrix = np.array(matrix)
-    single = False
-    if matrix.ndim == 2:
+    single = matrix.ndim == 2
+    if single:
         matrix = matrix[None, :, :]
-        single = True
 
     # Convert to flat
     positions = matrix[:, :3, 3]
