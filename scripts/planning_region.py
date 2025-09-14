@@ -120,7 +120,7 @@ if __name__ == "__main__":
             # Planning
             ("active_sampling", 1, int),
             ("predefined_controls", 1, int),
-            ("n_reps", 5, int),
+            ("n_reps", 1, int),
         ]
     )
 

@@ -192,7 +192,7 @@ if __name__ == "__main__":
         [
             ("object_name", "cracker_box_flipped"),
             ("model_class", "residual"),
-            ("n_exp", 5, int),
+            ("n_exp", 1, int),
             ("n_query", 100, int),
             ("batch_size", 10, int),
             ("device", "cuda:0"),

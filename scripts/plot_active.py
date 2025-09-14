@@ -78,13 +78,13 @@ def create_plot_data(object_name):
     for i, score in enumerate(scores):
         for exp_idx in range(score.shape[0]):  # For each experiment
             for j, val in enumerate(score[exp_idx]):
-                num_data = j + 1
+                num_data = (j + 1) * 10
                 title = object_name.replace("_", " ").title()
                 data.append(
                     {
                         "Method": keys[i],
                         "Number of Data": num_data,
-                        "SE2 RMSE": val,
+                        "SE2 Error": val,
                         "Object": title,
                     }
                 )
@@ -96,8 +96,8 @@ def create_plot_data(object_name):
 def main():
     """Plot active learning results for all objects horizontally"""
     object_names = [
-        "real_cracker_box_flipped",
-        "real_mustard_bottle_flipped",
+        # "real_cracker_box_flipped",
+        # "real_mustard_bottle_flipped",
         "cracker_box_flipped",
         "mustard_bottle_flipped",
         "banana",
@@ -133,7 +133,7 @@ def main():
 
     # Create a single figure with subplots horizontally
     fig, axes = plt.subplots(
-        1, len(object_names), figsize=(40, 12), sharey=True
+        1, len(object_names), figsize=(45, 15), sharey=True
     )
 
     # Remove the space between subplots
@@ -152,18 +152,18 @@ def main():
         sns.lineplot(
             data=df,
             x="Number of Data",
-            y="SE2 RMSE",
+            y="SE2 Error",
             hue="Method",
             marker="o",
             err_style="band",  # Confidence interval as a shaded band
-            errorbar=("ci", 68),  # ~1 standard deviation
+            errorbar=("sd", 1),  # ~1 standard deviation
             linewidth=7,  # Increase line thickness
             ax=ax,
             palette=custom_colors,  # Use our custom color mapping
             legend=False if i > 0 else True,  # Only show legend on first plot
         )
 
-        # # Set specific y-axis ticks and labels (only for the first plot)
+        # Set specific y-axis ticks and labels (only for the first plot)
         # y_ticks = np.arange(0.02, 0.17, 0.02)
         # ax.set_yticks(y_ticks)
         # if i == 0:
@@ -171,28 +171,28 @@ def main():
         # else:
         #     ax.set_yticklabels([])  # No labels for other plots
 
-        # # Set y-axis limits to ensure all ticks are visible
-        # ax.set_ylim(0.0, 0.17)
+        # Set y-axis limits to ensure all ticks are visible
+        ax.set_ylim(0.0, 0.17)
 
         # # Apply formatter to y-axis (to avoid scientific notation)
         # formatter.set_scientific(False)
         # ax.yaxis.set_major_formatter(formatter)
 
         # Set x-axis ticks
-        x_ticks = np.arange(1, 11, 1)
+        x_ticks = np.arange(1, 11, 1) * 10
         ax.set_xticks(x_ticks)
         ax.set_xticklabels(x_ticks, rotation=45)
 
         # Comment out or remove the title setting
         name = object_name.replace("_", " ").title()
-        ax.set_title(name, fontsize=30)
+        ax.set_title(name, fontsize=25)
 
         # Set x-axis label
         ax.set_xlabel("")
 
         # Set custom y-axis label for the first plot only
         if i == 0:
-            ax.set_ylabel("SE2 Pose Error (RMSE)", fontsize=30)
+            ax.set_ylabel("SE2 Error", fontsize=25)
         else:
             ax.set_ylabel("")
 
@@ -213,9 +213,9 @@ def main():
         # Remove left border for all plots except the first one
         if i > 0:
             ax.spines["left"].set_visible(False)
-    # Add a common x-axis label for all plots
-    fig.text(0.5, 0.1, "Number of Training Batches", ha="center", fontsize=30)
 
+    # Add a common x-axis label for all plots
+    fig.text(0.5, 0.15, "Number of Training Data", ha="center", fontsize=25)
     # Create a single legend for the entire figure
     handles, labels = axes[0].get_legend_handles_labels()
     axes[0].get_legend().remove()
@@ -223,7 +223,7 @@ def main():
         handles,
         labels,
         loc="upper center",
-        bbox_to_anchor=(0.5, 0.05),
+        bbox_to_anchor=(0.5, 0.15),
         frameon=True,
         framealpha=0.9,
         fontsize=26,

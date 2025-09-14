@@ -1,13 +1,15 @@
+import os, sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 import time
-import os, sys
 
 import mujoco
 import mujoco.viewer
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from mujoco_sim.mujoco_utils import flat_to_matrix, matrix_to_flat
-from mujoco_sim.mujoco_utils import render_mp4
+from simulation.mujoco_utils import flat_to_matrix, matrix_to_flat
+from simulation.mujoco_utils import render_mp4
 
 
 class Sim:
@@ -379,9 +381,8 @@ def test(sim: Sim):
 
 if __name__ == "__main__":
     np.set_printoptions(suppress=True, precision=5)
-    curr_dir = os.path.dirname(os.path.abspath(__file__))
-    sys.path.append(curr_dir)
 
+    curr_dir = os.path.dirname(os.path.abspath(__file__))
     xml = open(os.path.join(curr_dir, "mujoco_sim.xml")).read()
     xml = xml.replace("object_name", "cracker_box_flipped")
     sim = Sim(

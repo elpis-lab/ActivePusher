@@ -7,8 +7,8 @@ from tqdm import tqdm
 from scipy.spatial.transform import Rotation as R
 
 from geometry.pose import euler_to_quat
-from mujoco_sim.grr_ik import IK
-from mujoco_sim.mink_ik import UR10IK
+from simulation.grr_ik import IK
+from simulation.mink_ik import UR10IK
 from geometry.random_push import (
     get_random_push,
     generate_push_params,
@@ -17,7 +17,7 @@ from geometry.random_push import (
 from geometry.object_model import get_obj_shape
 from utils import parse_args, set_seed
 
-from mujoco_sim.mujoco_sim import Sim
+from simulation.mujoco_sim import Sim
 
 
 def execute_push(sim: Sim, ik, init_state, t_path, ws_path, dt):
@@ -42,7 +42,7 @@ def execute_push(sim: Sim, ik, init_state, t_path, ws_path, dt):
 def collect_data(obj_name, n_data, random_init=True, push_params=None):
     """Collect n_data for obj_name"""
     # Sim class
-    xml = open("mujoco_sim/mujoco_sim.xml").read()
+    xml = open("simulation/mujoco_sim.xml").read()
     xml = xml.replace("object_name", obj_name)
     sim = Sim(
         xml,
