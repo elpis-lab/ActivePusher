@@ -8,8 +8,8 @@ import seaborn as sns
 import pickle
 
 
-def main(obj_name, n_datas, types):
-    results = np.zeros((len(n_datas), len(types), 6))
+def main(obj_name, n_datas, types, reps_in_states=5):
+    results = np.zeros((len(n_datas), len(types), reps_in_states, 6))
     for i, n_data in enumerate(n_datas):
         for j, ty in enumerate(types):
             model_type, learning_type, sampling = ty.split("_")
@@ -17,16 +17,32 @@ def main(obj_name, n_datas, types):
                 f"{obj_name}_{model_type}_{learning_type}_{n_data}_{sampling}"
             )
             res = np.load(f"results/planning/{name}_results.npy")
-            results[i, j, :] = res
+            results[i, j, :, :] = res
 
     # create a new plot two subplots
     fig, axs = plt.subplots(2, 1, figsize=(10, 10))
-    for i, ty in enumerate(types):
+    for j, ty in enumerate(types):
         model_type, learning_type, sampling = ty.split("_")
-        success = results[:, i, 0]
-        error = results[:, i, 2]
-        axs[0].plot(np.arange(10), success, label=f"{ty}")
-        axs[1].plot(np.arange(10), error, label=f"{ty}")
+        success = results[:, j, :, 0]
+        success_mean = np.mean(success, axis=1)
+        success_std = np.std(success, axis=1)
+        error = results[:, j, :, 2]
+        error_mean = np.mean(error, axis=1)
+        error_std = np.std(error, axis=1)
+        axs[0].plot(np.arange(len(success_mean)), success_mean, label=f"{ty}")
+        axs[0].fill_between(
+            np.arange(len(success_mean)),
+            success_mean - success_std,
+            success_mean + success_std,
+            alpha=0.2,
+        )
+        axs[1].plot(np.arange(len(error_mean)), error_mean, label=f"{ty}")
+        axs[1].fill_between(
+            np.arange(len(error_mean)),
+            error_mean - error_std,
+            error_mean + error_std,
+            alpha=0.2,
+        )
     axs[0].legend()
     axs[1].legend()
     plt.show()
@@ -317,18 +333,23 @@ def main(obj_name, n_datas, types):
 if __name__ == "__main__":
     obj_names = [
         "mustard_bottle_flipped",
-        "real_mustard_bottle_flipped",
         "cracker_box_flipped",
+    ]
+    real_obj_names = [
+        "real_mustard_bottle_flipped",
         "real_cracker_box_flipped",
     ]
 
     n_datas = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+    real_n_datas = [20, 40, 60, 80, 100]
     types = [
         "mlp_random_regular",
-        "mlp_random_active",
+        # "mlp_random_active",
         "residual_bait_regular",
         "residual_bait_active",
     ]
 
     for obj_name in obj_names:
-        main(obj_name, n_datas, types)
+        main(obj_name, n_datas, types, reps_in_states=5)
+    for obj_name in real_obj_names:
+        main(obj_name, real_n_datas, types, reps_in_states=1)

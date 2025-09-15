@@ -28,14 +28,14 @@ def run_planning(
     active_sampling,
     predefined_controls,
     start_states,
-    obsatcles,
+    obstacles,
     planning_time,
-    n_reps=5,
+    n_reps=1,
 ):
     """Main function to do planning"""
     # Planning parameters
     # state bounds
-    bounds = ((-0.76, 0.76), (-1.0, -0.4))
+    bounds = ((-0.76, 0.76), (-1.1, -0.3))
     # control bounds
     control_bounds = ((0, 4), (-0.4, 0.4), (0.0, 0.3))
 
@@ -73,7 +73,7 @@ def run_planning(
         bounds,
         control_bounds,
         obj_shape,
-        obsatcles,
+        obstacles,
         model,
         x_train,
         active_sampling,
@@ -83,9 +83,9 @@ def run_planning(
     # Define the start and goal
     all_controls = []  # [n_reps x n_problems, n_steps]
     all_states = []  # [n_reps x n_problems, n_steps]
-    n_problems = 100
     for _ in range(n_reps):
-        for start_state in start_states[:n_problems]:
+        for start_state in start_states[:]:
+
             # Plan
             plan_states, plan_controls = planner.plan(
                 start_state,

@@ -31,9 +31,9 @@ def run_planning(
     active_sampling,
     predefined_controls,
     start_states,
-    obsatcles,
+    obstacles,
     planning_time,
-    n_reps=5,
+    n_reps=1,
 ):
     """Main function to do planning"""
     # Planning parameters
@@ -76,7 +76,7 @@ def run_planning(
         bounds,
         control_bounds,
         obj_shape,
-        obsatcles,
+        obstacles,
         model,
         x_train,
         active_sampling,
@@ -86,11 +86,8 @@ def run_planning(
     # Define the start and goal
     all_controls = []  # [n_reps x n_problems, n_steps]
     all_states = []  # [n_reps x n_problems, n_steps]
-
-    # TODO
-    n_problems = 100
     for _ in range(n_reps):
-        for start_state in start_states[:n_problems]:
+        for start_state in start_states[:]:
 
             # Change goal state based on start state
             rot_goals = [-np.pi / 2, np.pi / 2]
@@ -131,7 +128,7 @@ if __name__ == "__main__":
             # Planning
             ("active_sampling", 1, int),
             ("predefined_controls", 1, int),
-            ("n_reps", 5, int),
+            ("n_reps", 1, int),
         ]
     )
 

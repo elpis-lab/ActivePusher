@@ -53,7 +53,7 @@ def run_plans_sim(
     # Execute the plans
     exec_states = []
     exec_delta_states = []
-    invalids = []
+    states_invalids = []
     n_plan = len(plan_states)
     plan_init_states = np.array([states[0] for states in plan_states])
     plan_lengths = np.array([len(controls) for controls in plan_controls])
@@ -125,12 +125,12 @@ def run_plans_sim(
             exec_delta_states.append(
                 exec_delta_states_round[j][: plan_lengths[idxs[j]]].tolist()
             )
-            invalids.append(
+            states_invalids.append(
                 invalid_round[j][: plan_lengths[idxs[j]] + 1].tolist()
             )
 
     sim.close()
-    return exec_states, exec_delta_states, invalids
+    return exec_states, exec_delta_states, states_invalids
 
 
 if __name__ == "__main__":
@@ -153,12 +153,29 @@ if __name__ == "__main__":
 
             for n_data in n_datas:
                 for active_sampling in is_active_sampling:
-                    run_plans(
+
+                    sampling = "active" if active_sampling else "regular"
+                    name = (
+                        f"{obj_name}_{model_type}_{learning_type}_{n_data}"
+                        + f"_{sampling}"
+                    )
+                    poses_file = f"results/planning/{name}_plan_states.npy"
+                    controls_file = f"results/planning/{name}_controls.npy"
+                    plan_states = np.load(poses_file, allow_pickle=True)
+                    plan_controls = np.load(controls_file, allow_pickle=True)
+                    results, success, invalid, exec_states = run_plans(
                         run_plans_sim,
+                        plan_states,
+                        plan_controls,
                         obj_name,
-                        model_type,
-                        learning_type,
-                        n_data,
-                        active_sampling,
                         env,
+                        reps_in_states=5,
+                    )
+
+                    print(f"{name}: {np.mean(results[:, 0])}")
+                    print(f"SE2 Error: {np.mean(results[:, 2])}")
+                    np.save(f"results/planning/{name}_results.npy", results)
+                    np.save(
+                        f"results/planning/{name}_exec_states.npy",
+                        np.array(exec_states, dtype=object),
                     )

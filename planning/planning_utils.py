@@ -15,7 +15,7 @@ def get_random_se2_states(
 
 
 # Validity Check
-def out_of_bounds(obj_pos, pos_range=((-0.76, 0.76), (-1.0, -0.4))):
+def out_of_bounds(obj_pos, pos_range=((-0.76, 0.76), (-1.1, -0.3))):
     """Check if the object is out of bounds"""
     obj_pos = np.array(obj_pos)
     single = obj_pos.ndim == 1
