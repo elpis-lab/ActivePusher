@@ -34,6 +34,7 @@ def run_planning(
     obstacles,
     planning_time,
     n_reps=1,
+    accept_approximate=False,
 ):
     """Main function to do planning"""
     # Planning parameters
@@ -100,7 +101,7 @@ def run_planning(
                 goal_state,
                 goal_ranges,
                 planning_time,
-                accept_approximate=False,
+                accept_approximate,
             )
             if not plan_controls:
                 plan_states = [start_state, start_state]
