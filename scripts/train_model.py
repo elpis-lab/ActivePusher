@@ -184,7 +184,7 @@ def test(obj_name, model_type, use_var=0, n_data=200, plot=True):
         model.model,
         x_train,
         dataset["x_val"],
-        sigma=1e-3,
+        sigma=5e-3,
     )
     # See if the prediction on lower-variance points is better
     n_top = int(len(var) * 0.2)
