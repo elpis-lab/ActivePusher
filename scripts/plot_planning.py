@@ -8,8 +8,16 @@ import seaborn as sns
 import pickle
 
 
-def main(obj_name, n_datas, types, reps_in_states=5):
-    results = np.zeros((len(n_datas), len(types), reps_in_states, 6))
+def load_results_with_runs(
+    obj_name, n_datas, types, model_name_map, num_runs=5
+):
+    """Load results for a single object"""
+    all_data = []
+    print(f"\n=== Loading data for {obj_name} ===")
+
+    # Load the original data once
+    results = np.zeros((len(n_datas), len(types), num_runs, 6))
+
     for i, n_data in enumerate(n_datas):
         for j, ty in enumerate(types):
             model_type, learning_type, sampling = ty.split("_")
@@ -18,338 +26,296 @@ def main(obj_name, n_datas, types, reps_in_states=5):
             )
             res = np.load(f"results/planning/{name}_results.npy")
             results[i, j, :, :] = res
+            print(f"  Loaded: {name}")
 
-    # create a new plot two subplots
-    fig, axs = plt.subplots(2, 1, figsize=(10, 10))
-    for j, ty in enumerate(types):
+    # Convert to DataFrame format - create individual data points for each run
+    for i, ty in zip(range(len(types)), types):
         model_type, learning_type, sampling = ty.split("_")
-        success = results[:, j, :, 0]
-        success_mean = np.mean(success, axis=1)
-        success_std = np.std(success, axis=1)
-        error = results[:, j, :, 2]
-        error_mean = np.mean(error, axis=1)
-        error_std = np.std(error, axis=1)
-        axs[0].plot(np.arange(len(success_mean)), success_mean, label=f"{ty}")
-        axs[0].fill_between(
-            np.arange(len(success_mean)),
-            success_mean - success_std,
-            success_mean + success_std,
-            alpha=0.2,
-        )
-        axs[1].plot(np.arange(len(error_mean)), error_mean, label=f"{ty}")
-        axs[1].fill_between(
-            np.arange(len(error_mean)),
-            error_mean - error_std,
-            error_mean + error_std,
-            alpha=0.2,
-        )
-    axs[0].legend()
-    axs[1].legend()
-    plt.show()
-    return
+        success_rates = results[:, i, :, 0]  # Shape: (n_batches, n_runs)
+        errors = results[:, i, :, 2]  # Shape: (n_batches, n_runs)
+        print(f"Success rates: {success_rates.shape}")
 
-    # Initialize storage
-    success_rates = {
-        f"{mt}{asamp}": [] for mt in model_types for asamp in active_samplings
-    }
-    tracking_errors = {
-        f"{mt}{asamp}": [] for mt in model_types for asamp in active_samplings
-    }
+        model_display = model_name_map[ty]
 
-    # Data collection loop
-    for rep in num:
-        result_folder = f"results/planning_real/"
+        # Create individual data points for each run and batch
+        for batch_idx in range(success_rates.shape[0]):
+            for run_idx in range(success_rates.shape[1]):
+                all_data.append(
+                    {
+                        "Batch Number": batch_idx + 1,
+                        "Success Rate": success_rates[batch_idx, run_idx],
+                        "Tracking Error": errors[batch_idx, run_idx],
+                        "Method": model_display,
+                        "Run": run_idx,
+                    }
+                )
 
-        for mt in model_types:
-            for asamp in active_samplings:
-                key = f"{mt}{asamp}"
-                if len(success_rates[key]) < len(num_datas):
-                    success_rates[key] = [[] for _ in num_datas]
-                    tracking_errors[key] = [[] for _ in num_datas]
+    df = pd.DataFrame(all_data)
+    print(f"  Total data points loaded: {len(df)}")
+    print(f"  Unique runs: {df['Run'].nunique()}")
+    print(f"  Unique methods: {df['Method'].unique()}")
+    print(f"  Unique batch numbers: {sorted(df['Batch Number'].unique())}")
 
-                for i, nd in enumerate(num_datas):
-                    print(f"Processing batch {i+1} (data points: {nd})")
-                    name = f"{obj_name}_{mt}_{exp_idx}_{nd}{asamp}"
-                    folder = os.path.join(result_folder, name)
-                    status_list = np.load(
-                        os.path.join(folder, name + "_status_list.npy")
-                    )
-                    success_rate = np.sum(status_list) / len(status_list)
-                    success_rates[key][i].append(success_rate)
+    return df
 
-                    states = np.load(
-                        os.path.join(folder, name + "_states.npy"),
-                        allow_pickle=True,
-                    )
-                    exec_states = np.load(
-                        os.path.join(folder, name + "_exec_states.npy"),
-                        allow_pickle=True,
-                    )
-                    # Get the tracking error for every state
-                    tracking_error = get_tracking_mse(
-                        states, exec_states, individual=True
-                    )
-                    tracking_errors[key][i].append(tracking_error)
 
-                    # print the average number of steps
-                    print(
-                        name,
-                        success_rate,
-                        tracking_error,
-                        np.mean([len(plan) for plan in states]),
-                    )
-
-    # Check if there's data for all 10 batches
-    for key in success_rates:
-        print(f"Model {key} has {len(success_rates[key])} data points")
-
-    # Make results directory
-    save_dir = "results/planning_real"
-    os.makedirs(save_dir, exist_ok=True)
-
-    # --- Plot with seaborn ---
+def main():
+    # Set seaborn style
     sns.set_theme(style="whitegrid", palette="deep")
 
     # Set font to Times New Roman and increase font sizes
     plt.rcParams.update(
         {
             "font.family": "Times New Roman",
-            "font.size": 26,
-            "axes.titlesize": 30,
+            "font.size": 20,
+            "axes.titlesize": 35,
             "axes.labelsize": 30,
             "xtick.labelsize": 30,
             "ytick.labelsize": 30,
-            "legend.fontsize": 30,
+            "legend.fontsize": 18,
         }
     )
 
     # Create nicer model names for the legend
     model_name_map = {
-        "nn_random_regular": "MLP Random",
-        "residual_random_regular": "Residual Random",
-        "nn_bait_regular": "MLP Bait",
-        "residual_bait_regular": "Residual Bait",
-        "residual_bait_active": "Residual Bait (Active)",
+        "mlp_random_regular": "Regular Planning with MLP Random",
+        "residual_random_regular": "Regular Planning with Residual Random",
+        "mlp_bait_regular": "Regular Planning with MLP Bait",
+        "residual_bait_regular": "Regular Planning with Residual Bait",
+        "residual_bait_active": "Active Planning with Residual Bait (Ours)",
     }
 
     # Alternative hex color options
     custom_colors = {
-        "MLP Random": "#229954",  # Green
-        "Residual Random": "#2471a3",  # Blue
-        "MLP Bait": "#d68910",  # Yellow
-        "Residual Bait": "#a93226",  # Red
-        "Residual Bait (Active)": "#7d3c98",  # Purple
+        "Regular Planning with MLP Random": "#229954",  # Green
+        "Regular Planning with Residual Random": "#2471a3",  # Blue
+        "Regular Planning with MLP Bait": "#d68910",  # Yellow
+        "Regular Planning with Residual Bait": "#a93226",  # Red
+        "Active Planning with Residual Bait (Ours)": "#7d3c98",  # Purple
     }
 
-    # Prepare DataFrame for success rates with batch numbers instead of data points
-    records = []
-    for key, per_nd in success_rates.items():
-        for idx, rates in enumerate(per_nd):
-            # Map to batch number (1-10) instead of data amount (20-200)
-            batch_num = idx + 1  # Use 1-based indexing for batch numbers
-            for r in rates:
-                records.append(
-                    {
-                        "Batch Number": batch_num,
-                        "Success Rate (%)": r * 100,
-                        "Model": key,
-                    }
-                )
-    df_success = pd.DataFrame.from_records(records)
-
-    # Apply the mapping to create more readable labels
-    df_success["Model Display"] = df_success["Model"].map(model_name_map)
-
-    # Bar plot with manual positioning and custom colors
-    plt.figure(figsize=(20, 12))
-
-    # Group the data for plotting
-    grouped = (
-        df_success.groupby(["Batch Number", "Model Display"])[
-            "Success Rate (%)"
-        ]
-        .agg(["mean", "std"])
-        .reset_index()
-    )
-
-    # Get unique models and batch numbers
-    models = df_success["Model Display"].unique()
-    batch_numbers = sorted(df_success["Batch Number"].unique())
-
-    # Calculate bar width based on number of models
-    n_models = len(models)
-    width = 0.8 / n_models
-
-    # Plot each model's bars manually with custom colors
-    for i, model in enumerate(models):
-        model_data = grouped[grouped["Model Display"] == model]
-        # Calculate x positions - offset each model's bars
-        x_pos = np.array(model_data["Batch Number"]) + width * (
-            i - n_models / 2 + 0.5
-        )
-
-        # Get the color for this model from the custom palette
-        color = custom_colors[model]
-
-        # Plot the bars with error bars
-        plt.bar(
-            x_pos,
-            model_data["mean"],
-            width=width * 0.9,
-            yerr=model_data["std"],
-            label=model,
-            color=color,
-            capsize=3,
-        )
-
-    # Set up the axes
-    x_ticks = range(1, 11)
-    ax = plt.gca()  # Get the current axis
-    ax.set_xticks(x_ticks)
-    ax.set_xticklabels([str(x) for x in x_ticks], fontsize=30)
-    ax.set_xlim(0.5, 5.5)  # Ensure we can see all 10 batches
-
-    # Set y-axis configurations
-    y_ticks = range(0, 101, 10)
-    ax.set_yticks(y_ticks)
-    ax.set_yticklabels([str(y) for y in y_ticks], fontsize=30)
-    ax.set_ylim(0, 100)
-
-    # Labels and grid
-    ax.set_xlabel("Number of Batches", fontsize=30)
-    ax.set_ylabel("Success Rate (%)", fontsize=30)
-    ax.grid(True, axis="y", linestyle="--", alpha=0.7)
-
-    # Legend
-    plt.legend(
-        frameon=True,
-        framealpha=0.9,
-        fontsize=26,
-        loc="upper center",
-        bbox_to_anchor=(0.5, -0.15),
-        ncol=4,
-    )
-
-    # Layout adjustments
-    plt.tight_layout()
-    plt.subplots_adjust(bottom=0.2)
-
-    # Save the figure
-    plt.savefig(
-        os.path.join(save_dir, "planning_success_rate_barplot_manual.pdf"),
-        dpi=300,
-    )
-    plt.savefig(
-        os.path.join(save_dir, "planning_success_rate_barplot_manual.svg"),
-        dpi=300,
-    )
-
-    # Explicitly verify the DataFrame includes batch 10
-    batch_counts = df_success["Batch Number"].value_counts().sort_index()
-    print("Batches in DataFrame:", batch_counts)
-
-    # Prepare DataFrame for tracking errors with batch numbers
-    records = []
-    for key, per_nd in tracking_errors.items():
-        for idx, errs in enumerate(per_nd):
-            # Map to batch number (1-10) instead of data amount (20-200)
-            batch_num = idx + 1
-            for e in errs:
-                records.append(
-                    {
-                        "Batch Number": batch_num,  # Use batch number
-                        "Tracking RMSE": np.sqrt(e),
-                        "Model": key,
-                    }
-                )
-    df_track = pd.DataFrame.from_records(records)
-
-    # Apply the mapping to create more readable labels
-    df_track["Model Display"] = df_track["Model"].map(model_name_map)
-
-    # Line plot with consistent legend style and custom colors
-    plt.figure(figsize=(16, 12))
-    sns.lineplot(
-        data=df_track,
-        x="Batch Number",
-        y="Tracking RMSE",
-        hue="Model Display",
-        palette=custom_colors,
-        marker="o",
-        err_style="band",
-        errorbar="sd",
-        linewidth=7,
-    )
-
-    # Get the current axis
-    ax = plt.gca()
-
-    # Set x-axis ticks to values 1 through 5
-    x_ticks = range(1, 11)
-    ax.set_xticks(x_ticks)
-    ax.set_xticklabels([str(x) for x in x_ticks], fontsize=30)
-
-    # Set x-axis limits to match the bar plot
-    ax.set_xlim(0.5, 5.5)
-
-    # Set specific y-axis ticks and labels
-    y_ticks = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
-    ax.set_yticks(y_ticks)
-    ax.set_yticklabels([f"{val:.2f}" for val in y_ticks], fontsize=30)
-
-    # Set y-axis limits
-    ax.set_ylim(0.0, 0.45)
-
-    plt.xlabel("Number of Batches", fontsize=30)
-    plt.ylabel("Tracking Error (RMSE)", fontsize=30)
-
-    # Match the legend style from the bar plot
-    plt.legend(
-        frameon=True,
-        framealpha=0.9,
-        fontsize=26,
-        loc="upper center",
-        bbox_to_anchor=(0.5, -0.1),
-        ncol=4,
-    )
-
-    plt.tight_layout()
-    plt.subplots_adjust(bottom=0.2)  # Make room for legend at bottom
-    plt.savefig(os.path.join(save_dir, "planning_tracking_error_seaborn.pdf"))
-    plt.savefig(
-        os.path.join(save_dir, "planning_tracking_error_seaborn.svg"), dpi=300
-    )
-    plt.show()
-
-    # Save raw data
-    with open(os.path.join(save_dir, "success_rates.pkl"), "wb") as f:
-        pickle.dump(success_rates, f)
-    with open(os.path.join(save_dir, "tracking_errors.pkl"), "wb") as f:
-        pickle.dump(tracking_errors, f)
-
-    print(f"Data and plots saved to '{save_dir}'")
-
-
-if __name__ == "__main__":
+    # Object names and parameters
     obj_names = [
-        "mustard_bottle_flipped",
         "cracker_box_flipped",
-    ]
-    real_obj_names = [
-        "real_mustard_bottle_flipped",
+        "mustard_bottle_flipped",
         "real_cracker_box_flipped",
+        "real_mustard_bottle_flipped",
     ]
 
-    n_datas = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+    # Different data specifications for simulated vs real objects
+    sim_n_datas = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     real_n_datas = [20, 40, 60, 80, 100]
+
     types = [
         "mlp_random_regular",
-        # "mlp_random_active",
         "residual_bait_regular",
         "residual_bait_active",
     ]
 
-    for obj_name in obj_names:
-        main(obj_name, n_datas, types, reps_in_states=5)
-    for obj_name in real_obj_names:
-        main(obj_name, real_n_datas, types, reps_in_states=1)
+    # Create 2x2 subplot grid
+    fig, axes = plt.subplots(2, 2, figsize=(16, 16))
+    axes = axes.flatten()
+
+    # Plot each object
+    for obj_idx, obj_name in enumerate(obj_names):
+        ax1 = axes[obj_idx]
+
+        # Choose data specifications based on object type
+        if obj_name.startswith("real_"):
+            n_datas = real_n_datas
+            num_runs = 1
+            print(
+                f"Using real object specifications: {n_datas} data points, {num_runs} runs"
+            )
+        else:
+            n_datas = sim_n_datas
+            num_runs = 5
+            print(
+                f"Using simulated object specifications: {n_datas} data points, {num_runs} runs"
+            )
+
+        # Load results with appropriate specifications
+        df = load_results_with_runs(
+            obj_name, n_datas, types, model_name_map, num_runs
+        )
+
+        # Debug: Check if we have multiple runs for standard deviation
+        unique_runs = df["Run"].nunique()
+        print(f"\nPlotting {obj_name}: {unique_runs} unique runs")
+
+        if unique_runs == 1:
+            print(
+                f"  WARNING: Only 1 run available for {obj_name} - no standard deviation bands will be shown!"
+            )
+
+        # Plot success rates using seaborn
+        sns.lineplot(
+            data=df,
+            x="Batch Number",
+            y="Success Rate",
+            hue="Method",
+            marker="o",
+            err_style="band",
+            errorbar="sd",
+            linewidth=4,
+            markersize=8,
+            ax=ax1,
+            palette=custom_colors,
+            legend=False,
+        )
+
+        # Create second y-axis for tracking errors
+        ax2 = ax1.twinx()
+
+        # Plot tracking errors using seaborn
+        sns.lineplot(
+            data=df,
+            x="Batch Number",
+            y="Tracking Error",
+            hue="Method",
+            marker="s",
+            err_style="band",
+            errorbar="sd",
+            linewidth=4,
+            markersize=8,
+            linestyle="--",
+            ax=ax2,
+            palette=custom_colors,
+            legend=False,
+        )
+
+        # Remove x-axis label from individual plots
+        ax1.set_xlabel("", fontsize=20)
+
+        # Only show y-axis labels on the leftmost subplots
+        if obj_idx % 2 == 0:  # Left column (0, 2)
+            ax1.set_ylabel("Success Rate", fontsize=35, color="black")
+            ax1.tick_params(axis="y", labelcolor="black", labelsize=30)
+        else:
+            ax1.set_ylabel("", fontsize=35, color="black")
+            ax1.tick_params(
+                axis="y", labelcolor="black", labelsize=30, labelleft=False
+            )
+
+        # Clean object name for title
+        clean_name = (
+            obj_name.replace("_", " ").replace("flipped", "").title().strip()
+        )
+        if obj_name.startswith("real_"):
+            clean_name = clean_name.replace("Real ", "") + " - Real"
+        else:
+            clean_name = clean_name + " - Sim"
+
+        ax1.set_title(clean_name, fontsize=35)
+
+        # Set x-axis ticks based on object type
+        if obj_name.startswith("real_"):
+            ax1.set_xticks(range(1, 6))  # 5 data points for real objects
+            ax1.set_xticklabels(
+                [str(x) for x in range(20, 101, 20)], fontsize=24
+            )
+            ax1.set_xlim(0.9, 5.1)  # Bottom row (real results)
+        else:
+            ax1.set_xticks(
+                range(1, 11)
+            )  # 10 data points for simulated objects
+            ax1.set_xticklabels(
+                [str(x) for x in range(10, 101, 10)], fontsize=24
+            )
+            ax1.set_xlim(0.8, 10.2)  # Top row (simulation)
+
+        ax1.set_ylim(0, 1)
+        ax1.grid(True, linestyle="--", alpha=0.7)
+
+        # Configure right y-axis (Tracking Error)
+        # Only show y-axis labels on the rightmost subplots
+        if obj_idx % 2 == 1:  # Right column (1, 3)
+            ax2.set_ylabel("SE2 Error", fontsize=35, color="black")
+            ax2.tick_params(axis="y", labelcolor="black", labelsize=30)
+        else:
+            ax2.set_ylabel("", fontsize=35, color="black")
+            ax2.tick_params(
+                axis="y", labelcolor="black", labelsize=30, labelright=False
+            )
+        ax2.set_ylim(0, 0.2)
+
+        # Set manual y-axis tick labels for tracking error
+        y_ticks = [0.0, 0.04, 0.08, 0.12, 0.16, 0.2]
+        ax2.set_yticks(y_ticks)
+        ax2.set_yticklabels([f"{val:.2f}" for val in y_ticks], fontsize=30)
+
+        # Create combined legend only for the first subplot
+        if obj_idx == 0:
+            lines1, labels1 = ax1.get_legend_handles_labels()
+            lines2, labels2 = ax2.get_legend_handles_labels()
+            # Don't create legend here, we'll do it at the bottom
+
+    # Add a common x-axis label for all plots at the bottom center
+    fig.text(
+        0.5, 0.16, "Number of Data", ha="center", fontsize=35
+    )  # Changed from 24 to 35
+
+    # Create a single legend for the entire figure at the bottom
+    # Create legend handles manually since seaborn plots have legend=False
+    from matplotlib.lines import Line2D
+
+    # Create handles for methods (by color)
+    method_handles = []
+    method_labels = []
+    for i, ty in enumerate(types):
+        model_display = model_name_map[ty]
+        color = custom_colors[model_display]
+        method_handles.append(
+            Line2D(
+                [0], [0], color=color, marker="o", linewidth=5, markersize=10
+            )
+        )
+        method_labels.append(model_display)
+
+    # Create handles for line styles (success rate vs tracking error)
+    style_handles = []
+    style_labels = []
+    style_handles.append(
+        Line2D([0], [0], color="black", linewidth=5, linestyle="-")
+    )
+    style_labels.append("Success Rate")
+    style_handles.append(
+        Line2D([0], [0], color="black", linewidth=5, linestyle="--")
+    )
+    style_labels.append("Tracking Error")
+
+    # Combine all handles and labels
+    all_handles = method_handles + style_handles
+    all_labels = method_labels + style_labels
+
+    # Create legend at the bottom
+    fig.legend(
+        all_handles,
+        all_labels,
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.01),  # Moved up from -0.2 to 0.05
+        frameon=True,
+        framealpha=0.9,
+        fontsize=35,  # Changed from 18 to 35
+        ncol=2,  # Arrange in 2 columns
+    )
+
+    # Adjust layout
+    plt.tight_layout()
+    plt.subplots_adjust(
+        bottom=0.22
+    )  # Increased from 0.12 to 0.2 to give more space for legend
+
+    # Save the figure
+    save_dir = "results/planning"
+    os.makedirs(save_dir, exist_ok=True)
+
+    plt.savefig(f"{save_dir}/active_planning_results.pdf", dpi=300)
+    plt.savefig(f"{save_dir}/active_planning_results.svg", dpi=300)
+    # plt.show()
+
+    print(f"Combined plot saved to {save_dir}/active_planning_results.pdf")
+
+
+if __name__ == "__main__":
+    main()
