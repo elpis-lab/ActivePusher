@@ -2,16 +2,15 @@
 
 Implementation of paper "ActivePusher: Active Learning and Planning with Residual Physics for Nonprehensile Manipulation". This is a framework for robot to learn and plan real-world nonprehensile manipulation task efficiently.
 
-
 <p align="center">
-    <img src="./doc/intro.jpg" width="600"/>
+    <img src="doc/intro.jpg" width="600"/>
 </p>
 
-<p align="center">
+<!-- <p align="center">
       <a href="https://www.youtube.com">
-          <img src="./doc/intro.gif" width="600"/>
+          <img src="doc/intro.gif" width="600"/>
     </a>
-</p>
+</p> -->
 
 ## Dependencies
 
@@ -60,7 +59,7 @@ python scripts/collect_data.py <obj_name>
 You will see the robot start to push the object randomly. The push parameter and the effect of the push will be recorded and saved in **data** folder.
 
 <p align="center">
-    <img src="./doc/data_collection.gif" width="600"/>
+    <img src="doc/data_collection.gif" width="600"/>
 </p>
 
 ### Run Active Training
@@ -78,7 +77,7 @@ After training, all the models will be saved in **results/models** folder and al
 You can plot the results by running `scripts/plot_active.py`. Here is the active learning result demonstrating how residual physics model and active learning method BAIT, can help to learn dynamics model efficiently. It only requiring approximately 40~50% of the data to reach the final performance of the baseline method.
 
 <p align="center">
-    <img src="./doc/active_learning.jpg"/>
+    <img src="doc/active_learning.jpg" width="600"/>
 </p>
 
 ## Active Planning
@@ -119,8 +118,8 @@ python scripts/run_plans_sim.py
 
 After planning, all the results will be saved in **results/planning** folder.
 
-You can plot the results by running `scripts/plot_planning.py`. Here is the active planning result demonstrating how active sampling strategy biases the control sampler to sample more reliable actions, leading to a higher planning success rate.
+You can plot the results by running `scripts/plot_planning.py`. Here is the active planning result demonstrating how active sampling strategy biases the control sampler to sample more reliable actions, leading to a higher planning success rate and lower execution error.
 
 <p align="center">
-    <img src="./doc/active_planning.jpg"/>
+    <img src="doc/active_planning.jpg" width="600"/>
 </p>
