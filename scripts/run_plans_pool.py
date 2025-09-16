@@ -116,7 +116,6 @@ if __name__ == "__main__":
                         env,
                         reps_in_states=5,
                     )
-
                     print(f"{name}: {np.mean(results[:, 0])}")
                     print(f"SE2 Error: {np.mean(results[:, 2])}")
                     np.save(f"results/planning/{name}_results.npy", results)

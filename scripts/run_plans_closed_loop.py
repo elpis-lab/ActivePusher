@@ -50,10 +50,10 @@ def run_plans_closed_loop(
         # Plans are not successful
         # but not invalid (out of bounds or in collision or too long)
         continue_idxs = np.where(~success & ~invalid)[0]
-        if len(continue_idxs) == 0:
-            break
         print(np.sum(success), np.sum(invalid))
         print(f"{len(continue_idxs)} plans can be run again.")
+        if len(continue_idxs) == 0:
+            break
 
         # The new start states
         curr_states = []
@@ -157,7 +157,7 @@ if __name__ == "__main__":
         args.obj_name,
         env,
         reps_in_states=5,
-        replan_time=3,
+        replan_time=3,  # 1
     )
     print(f"{name}: {np.mean(results[:, 0])}")
     np.save(

@@ -101,19 +101,21 @@ class SE2ControlPlanner:
         self.set_control_sampler(control_sampler)
 
         # Optimization objective
-        if len(self.obstacle_poses) == 0:
-            objective = ob.PathLengthOptimizationObjective(self.si)
-            self.set_optimization_objective(objective)
-
-        else:
-            combo = ob.MultiOptimizationObjective(self.si)
-            # Path length, with obstacle avoidance
-            length_obj = ob.PathLengthOptimizationObjective(self.si)
-            combo.addObjective(length_obj, 1.0)
-            # Maximize min clearance
-            clearance_obj = ClearanceObjective(self.si, self.clearance)
-            combo.addObjective(clearance_obj, 1.0)
-            self.set_optimization_objective(combo)
+        objective = ob.PathLengthOptimizationObjective(self.si)
+        self.set_optimization_objective(objective)
+        # Clearance is not helpful somehow, deprecated
+        # if len(self.obstacle_poses) == 0:
+        #     objective = ob.PathLengthOptimizationObjective(self.si)
+        #     self.set_optimization_objective(objective)
+        # else:
+        #     combo = ob.MultiOptimizationObjective(self.si)
+        #     # Path length, with obstacle avoidance
+        #     length_obj = ob.PathLengthOptimizationObjective(self.si)
+        #     combo.addObjective(length_obj, 1.0)
+        #     # Maximize min clearance
+        #     clearance_obj = ClearanceObjective(self.si, self.clearance)
+        #     combo.addObjective(clearance_obj, 0.05)
+        #     self.set_optimization_objective(combo)
 
         # Planner algorithm
         self.set_planner(oc.SST)
