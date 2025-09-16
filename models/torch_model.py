@@ -6,7 +6,7 @@ import torch.nn.functional as F
 class MLP(nn.Module):
     """Simple MLP model with dropout and uncertainty prediction options.
 
-    in -> hidden -> 2*hidden -> 4*hidden -> 2*hidden -> hidden -> out/logvar
+    in -> hidden -> 2*hidden -> 2*hidden -> hidden -> out/logvar
     """
 
     def __init__(self, in_dim, out_dim, hidden_dim=32, dropout=0):
