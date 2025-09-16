@@ -16,10 +16,6 @@ Implementation of paper "ActivePusher: Active Learning and Planning with Residua
 
 This project is developed and tested in Ubuntu 22.04 with python 3.10.
 
-```bash
-git clone --recurse-submodules git@github.com:elpis-lab/ActivePusher.git
-```
-
 #### Installation of required packages
 
 Install pytorch following the instructions from [pytorch.org](https://pytorch.org/get-started/locally/).

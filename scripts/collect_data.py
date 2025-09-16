@@ -7,7 +7,8 @@ from tqdm import tqdm
 from scipy.spatial.transform import Rotation as R
 
 from geometry.pose import euler_to_quat
-from simulation.grr_ik import IK
+
+# from simulation.grr_ik import IK
 from simulation.mink_ik import UR10IK
 from geometry.random_push import (
     get_random_push,
@@ -54,8 +55,8 @@ def collect_data(obj_name, n_data, random_init=True, push_params=None):
         real_time_vis=False,
     )
     # IK solver
-    ik = IK("ur10_rod")
-    # ik = UR10IK("assets/ur10_rod_ik.xml")
+    # ik = IK("ur10_rod")
+    ik = UR10IK("assets/ur10_rod_ik.xml")
 
     # Initial state parameters
     n_envs, dt = sim.get_sim_info()

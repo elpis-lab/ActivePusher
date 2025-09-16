@@ -9,7 +9,7 @@ from geometry.pose import SE2Pose, euler_to_quat
 from planning.planning_utils import out_of_bounds, in_collision_with_circles
 from run_plans import run_plans
 
-from simulation.grr_ik import IK
+# from simulation.grr_ik import IK
 from simulation.mink_ik import UR10IK
 from simulation.mujoco_sim import Sim
 from collect_data import project_se3_pose
@@ -47,8 +47,8 @@ def run_plans_sim(
         visualize=True,
     )
     # IK solver
-    ik = IK("ur10_rod")
-    # ik = UR10IK("assets/ur10_rod_ik.xml")
+    # ik = IK("ur10_rod")
+    ik = UR10IK("assets/ur10_rod_ik.xml")
 
     # Execute the plans
     exec_states = []
