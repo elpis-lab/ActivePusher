@@ -201,6 +201,10 @@ def main():
         clean_name = (
             obj_name.replace("_", " ").replace("flipped", "").title().strip()
         )
+        if "cracker" in clean_name.lower():
+            clean_name = "Push to Edge"
+        if "mustard" in clean_name.lower():
+            clean_name = "Push to Region"
         if obj_name.startswith("real_"):
             clean_name = clean_name.replace("Real ", "") + " - Real"
         else:
