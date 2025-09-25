@@ -2,15 +2,17 @@
 
 Implementation of paper "ActivePusher: Active Learning and Planning with Residual Physics for Nonprehensile Manipulation". This is a framework for robot to learn and plan real-world nonprehensile manipulation task efficiently.
 
+[Paper TBA] [[Pre-print](https://arxiv.org/abs/2506.04646)] [[Presentation Video](https://youtu.be/lxvyy61g0CY)]
+
 <p align="center">
     <img src="doc/intro.jpg" width="600"/>
 </p>
 
-<!-- <p align="center">
-      <a href="https://www.youtube.com">
-          <img src="doc/intro.gif" width="600"/>
+<p align="center">
+    <a href="https://youtu.be/lxvyy61g0CY">
+        <img src="doc/intro.gif" width="600"/>
     </a>
-</p> -->
+</p>
 
 ## Dependencies
 
