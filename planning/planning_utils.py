@@ -135,8 +135,7 @@ def is_state_success(poses, goal, goal_region):
 # Plotting
 def plot_states(
     states,
-    circle_poses=(),
-    circle_rads=(),
+    obstacles=np.array([]),
     planned_states=None,
     obj_shape=None,
 ):
@@ -151,15 +150,18 @@ def plot_states(
     # Plot a robot
     draw_rectangle(0, 0, 0.2, 0.2, 0, "gray", alpha=1.0, label="Robot")
     # Plot the obstacles
-    for circle_pose, circle_rad in zip(circle_poses, circle_rads):
-        draw_circle(
-            circle_pose[0],
-            circle_pose[1],
-            circle_rad,
-            "r",
-            alpha=0.3,
-            label="Obstacle",
-        )
+    if len(obstacles) > 0:
+        circle_poses = obstacles[:, :2]
+        circle_rads = obstacles[:, 2]
+        for circle_pose, circle_rad in zip(circle_poses, circle_rads):
+            draw_circle(
+                circle_pose[0],
+                circle_pose[1],
+                circle_rad,
+                "r",
+                alpha=0.3,
+                label="Obstacle",
+            )
 
     # Plot the states path
     if planned_states is not None:

@@ -15,7 +15,7 @@ from geometry.object_model import get_obj_shape
 from models.physics import push_physics
 from real_world.physical_robot import PhysicalUR10
 from utils import parse_args
-from scripts.collect_data import project_se3_pose
+from collect_data import project_se3_pose
 
 
 ########## Hardware Helper Functions ##########
@@ -102,7 +102,6 @@ def get_object_pose(
 
     # Debug
     np.set_printoptions(precision=5, suppress=True)
-    print(debug_img_id)
     print("Detected Pose: ", obj_se2)
     return obj_pose, bounding_box
 

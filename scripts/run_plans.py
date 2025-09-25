@@ -42,6 +42,7 @@ def run_plans(
     # Environment
     # Push-to-region Experiment
     if env == "region":
+        obstacles = np.array([])
         circle_poses = np.array([])
         circle_rads = np.array([])
     # Push-to-edge Experiment
@@ -76,9 +77,7 @@ def run_plans(
     # Plot the results
     if verbose:
         for e_states, states in zip(exec_states, plan_states):
-            plot_states(
-                e_states, circle_poses, circle_rads, states, obj_shape[:2]
-            )
+            plot_states(e_states, obstacles, states, obj_shape[:2])
 
     # Check path deviation
     errors = np.zeros(len(exec_states))
