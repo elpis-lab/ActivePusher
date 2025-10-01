@@ -160,6 +160,7 @@ if __name__ == "__main__":
         replan_time=3,  # 1
     )
     print(f"{name}: {np.mean(results[:, 0])}")
+    os.makedirs(f"results/planning", exist_ok=True)
     np.save(
         f"results/planning/{name}_results_closed_loop.npy",
         results,

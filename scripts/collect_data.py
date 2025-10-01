@@ -164,6 +164,7 @@ def project_se3_pose(poses, axis=[0, 1, 0]):
 
 if __name__ == "__main__":
     args = parse_args([("obj_name", "cracker_box_flipped")])
+    os.makedirs("data", exist_ok=True)
     set_seed(42)
 
     # Collect data
@@ -171,12 +172,3 @@ if __name__ == "__main__":
     push_params, results = collect_data(args.obj_name, n_data)
     np.save(f"data/x_{args.obj_name}_{n_data}.npy", push_params)
     np.save(f"data/y_{args.obj_name}_{n_data}.npy", results)
-
-    # Collect repetitive data
-    n_data = 1000
-    n_reps = 10
-    push_params, results = collect_repetitive_data(
-        args.obj_name, n_data, n_reps
-    )
-    np.save(f"data/x_{args.obj_name}_{n_data}x{n_reps}.npy", push_params)
-    np.save(f"data/y_{args.obj_name}_{n_data}x{n_reps}.npy", results)

@@ -72,6 +72,7 @@ def train_active_learning(
     """Start training process"""
     results = dict()
     idx_used = dict()
+    os.makedirs("results/models/", exist_ok=True)
 
     # Dataset summary
     print(f"\n---------- Dataset ----------")

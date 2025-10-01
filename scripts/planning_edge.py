@@ -19,6 +19,7 @@ def generate_initial_states(n_states):
     states = get_random_se2_states(
         n_states, pos_range=((0.1, 0.2), (-0.8, -0.6))
     )
+    os.makedirs("data", exist_ok=True)
     np.save("data/planning_edge_initial_states.npy", states)
 
 
@@ -168,5 +169,6 @@ if __name__ == "__main__":
         f"{args.obj_name}_{args.model_type}_{args.learning_type}"
         + f"_{args.n_data}_{sampling}"
     )
+    os.makedirs("results/planning", exist_ok=True)
     np.save(f"results/planning/{name}_plan_states.npy", all_states)
     np.save(f"results/planning/{name}_controls.npy", all_controls)

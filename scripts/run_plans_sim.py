@@ -174,6 +174,7 @@ if __name__ == "__main__":
 
                     print(f"{name}: {np.mean(results[:, 0])}")
                     print(f"SE2 Error: {np.mean(results[:, 2])}")
+                    os.makedirs(f"results/planning", exist_ok=True)
                     np.save(f"results/planning/{name}_results.npy", results)
                     np.save(
                         f"results/planning/{name}_exec_states.npy",
