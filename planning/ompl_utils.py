@@ -445,31 +445,36 @@ class ControlBatchSampler(oc.ControlSampler):
             i_l, i_h = i, i + batch_size
 
             pred = self.model(self.controls[i_l:i_h])
-            # mean
+            # Mean
             self.d_states[i_l:i_h, :3] = pred[:, :3]
-            # variance
+
+            # Variance
+            # Kernel method (epistemic) if available
             if self.s_dim == 3 or pred.shape[1] == 3:
-                # Kernel method
                 self.total_var[i_l:i_h] = get_posteriors(
                     self.model.model,
                     self.x_train,
                     self.controls[i_l:i_h],
                     sigma=5e-3,
                 )
+            # NLL variance prediction
             elif pred.shape[1] == 2 * 3:
-                # Variance prediction
                 variances = np.exp(pred[:, 3:])
-                self.d_states[i_l:i_h, [3, 6, 8]] = variances
+                if self.d_states.shape[1] > 3:
+                    self.d_states[i_l:i_h, [3, 6, 8]] = variances
                 self.total_var[i_l:i_h] = np.sum(variances, axis=1)
+            # Evidential regression prediction
             elif pred.shape[1] == 4 * 3:
                 nu, alpha, beta = pred[:, 3:6], pred[:, 6:9], pred[:, 9:]
                 # Original std
                 # variances = beta / (nu * (alpha - 1.0))
                 # Better aleatoric Proxy
-                variances = beta * (1 + nu) / (alpha * nu)
-                self.d_states[i_l:i_h, [3, 6, 8]] = variances
+                aleatoric = beta * (1 + nu) / (alpha * nu)
                 epistemic = 1 / nu
-                self.total_var[i_l:i_h] = np.sum(epistemic, axis=1)
+                total_var = aleatoric + epistemic
+                if self.d_states.shape[1] > 3:
+                    self.d_states[i_l:i_h, [3, 6, 8]] = aleatoric
+                self.total_var[i_l:i_h] = np.sum(aleatoric, axis=1)
             else:
                 raise ValueError(
                     f"Invalid model prediction dimension: {pred.shape[1]}"
